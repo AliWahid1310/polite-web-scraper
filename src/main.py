@@ -8,10 +8,14 @@ extracts and validates records into clean JSON, and produces a run report.
 """
 
 import os
+import sys
 import re
 import time
 import hashlib
 from urllib.parse import urljoin
+
+# Add project root to sys.path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import requests
 from bs4 import BeautifulSoup
@@ -74,6 +78,9 @@ def fetch_page(url: str) -> str | None:
     if response.status_code != 200:
         print(f"  FETCH FAIL {url}  (status {response.status_code})")
         return None
+
+    if response.encoding == "ISO-8859-1" or not response.encoding:
+        response.encoding = response.apparent_encoding or "utf-8"
 
     html = response.text
 
@@ -143,6 +150,39 @@ def discover_books(start_url: str, max_pages: int = MAX_CATALOGUE_PAGES) -> list
     return all_books
 
 
+from src.extract import extract_book_detail
+
+# ---------------------------------------------------------------------------
+# Stage 3 — Extract the raw records
+# ---------------------------------------------------------------------------
+def extract_all_raw_records(book_entries: list[dict]) -> list[dict]:
+    """
+    Fetch and extract 8 raw fields for all discovered books.
+    """
+    raw_records = []
+    print(f"[Stage 3] Extracting raw details for {len(book_entries)} books ...")
+
+    for i, entry in enumerate(book_entries, start=1):
+        url = entry["url"]
+        source_page = entry["source_page"]
+        
+        html = fetch_page(url)
+        if not html:
+            print(f"  [SKIP] Could not fetch detail page: {url}")
+            continue
+
+        record = extract_book_detail(html, url, source_page)
+        raw_records.append(record)
+
+    print(f"\n  detail_pages={len(raw_records)}")
+    if raw_records:
+        import json
+        print("\n  Sample raw record (all 8 keys):")
+        print(json.dumps(raw_records[0], indent=2))
+
+    return raw_records
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -160,6 +200,10 @@ def main():
         print("  [FAIL] No books discovered. Aborting.")
         return
     print(f"  [OK] {len(book_entries)} unique book URLs collected\n")
+
+    # Stage 3 — extract raw records
+    raw_records = extract_all_raw_records(book_entries)
+    print(f"  [OK] Stage 3 complete: extracted {len(raw_records)} records\n")
 
 
 if __name__ == "__main__":

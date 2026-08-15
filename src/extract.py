@@ -59,7 +59,7 @@ def extract_book_detail(html: str, product_url: str, source_page: str) -> dict:
     if product_main:
         price_tag = product_main.select_one("p.price_color")
         if price_tag:
-            price_text = price_tag.get_text(strip=True)
+            price_text = price_tag.get_text(strip=True).replace("\u00c2", "").replace("Â", "")
 
     # Availability text (e.g. 'In stock (22 available)')
     availability_text = ""

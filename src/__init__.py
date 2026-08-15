@@ -1,0 +1,1 @@
+"""Polite Web Scraper package."""
