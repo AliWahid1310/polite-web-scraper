@@ -11,8 +11,10 @@ import os
 import re
 import time
 import hashlib
+from urllib.parse import urljoin
 
 import requests
+from bs4 import BeautifulSoup
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -89,6 +91,59 @@ def fetch_page(url: str) -> str | None:
 
 
 # ---------------------------------------------------------------------------
+# Stage 2 — Find all three pages
+# ---------------------------------------------------------------------------
+def discover_books(start_url: str, max_pages: int = MAX_CATALOGUE_PAGES) -> list[dict]:
+    """
+    Crawl catalogue pages and collect book URLs.
+
+    Returns a list of dicts: {"url": <absolute_url>, "source_page": <catalogue_page_url>}
+    Follows the 'next' link up to max_pages. Deduplicates by URL.
+    """
+    all_books = []
+    seen_urls = set()
+    current_url = start_url
+    pages_crawled = 0
+
+    while current_url and pages_crawled < max_pages:
+        pages_crawled += 1
+        print(f"  Catalogue page {pages_crawled}: {current_url}")
+
+        html = fetch_page(current_url)
+        if html is None:
+            print(f"  [FAIL] Could not fetch catalogue page {pages_crawled}")
+            break
+
+        soup = BeautifulSoup(html, "lxml")
+
+        # Collect book links from article.product_pod h3 > a
+        for article in soup.select("article.product_pod"):
+            link_tag = article.select_one("h3 > a")
+            if link_tag and link_tag.get("href"):
+                # Convert relative URL to absolute using urljoin
+                absolute_url = urljoin(current_url, link_tag["href"])
+                if absolute_url not in seen_urls:
+                    seen_urls.add(absolute_url)
+                    all_books.append({
+                        "url": absolute_url,
+                        "source_page": current_url,
+                    })
+
+        # Follow the 'next' link
+        next_link = soup.select_one("li.next > a")
+        if next_link and next_link.get("href"):
+            current_url = urljoin(current_url, next_link["href"])
+        else:
+            current_url = None
+
+    total_discovered = len(all_books)
+    unique_count = len(seen_urls)
+    print(f"\n  catalogue_pages={pages_crawled}  discovered={total_discovered}  unique_urls={unique_count}")
+
+    return all_books
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 def main():
@@ -98,15 +153,15 @@ def main():
     print("=" * 60)
     print()
 
-    # Stage 1 — fetch the first catalogue page
-    print("[Stage 1] Fetching first catalogue page ...")
-    html = fetch_page(BASE_URL)
-    if html:
-        print(f"  [OK] Page fetched successfully ({len(html):,} bytes)")
-    else:
-        print("  [FAIL] Failed to fetch first catalogue page. Aborting.")
+    # Stage 2 — discover books across 3 catalogue pages
+    print("[Stage 2] Discovering books from catalogue pages ...")
+    book_entries = discover_books(BASE_URL)
+    if not book_entries:
+        print("  [FAIL] No books discovered. Aborting.")
         return
+    print(f"  [OK] {len(book_entries)} unique book URLs collected\n")
 
 
 if __name__ == "__main__":
     main()
+
