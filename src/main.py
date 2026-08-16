@@ -151,6 +151,7 @@ def discover_books(start_url: str, max_pages: int = MAX_CATALOGUE_PAGES) -> list
 
 
 from src.extract import extract_book_detail
+from src.storage import process_and_validate_records, save_records
 
 # ---------------------------------------------------------------------------
 # Stage 3 — Extract the raw records
@@ -175,11 +176,6 @@ def extract_all_raw_records(book_entries: list[dict]) -> list[dict]:
         raw_records.append(record)
 
     print(f"\n  detail_pages={len(raw_records)}")
-    if raw_records:
-        import json
-        print("\n  Sample raw record (all 8 keys):")
-        print(json.dumps(raw_records[0], indent=2))
-
     return raw_records
 
 
@@ -204,6 +200,15 @@ def main():
     # Stage 3 — extract raw records
     raw_records = extract_all_raw_records(book_entries)
     print(f"  [OK] Stage 3 complete: extracted {len(raw_records)} records\n")
+
+    # Stage 4 — normalize, validate, and store
+    print("[Stage 4] Normalizing and schema-validating records ...")
+    valid_records, error_records = process_and_validate_records(raw_records)
+    save_result = save_records(valid_records, error_records)
+    
+    print(f"  Valid records saved: {save_result['books_saved']} -> {save_result['books_file']}")
+    print(f"  Invalid records:     {save_result['errors_saved']} -> {save_result['errors_file']}")
+    print(f"  [OK] Stage 4 complete: {len(valid_records)} verified records stored.\n")
 
 
 if __name__ == "__main__":
