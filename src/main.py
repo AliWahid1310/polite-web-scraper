@@ -25,6 +25,7 @@ from urllib.parse import urljoin
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from bs4 import BeautifulSoup
+from src.exporters import export_to_csv
 from src.extract import extract_book_detail
 from src.reporter import ScraperReporter
 from src.retry import polite_get_with_retry
@@ -249,7 +250,11 @@ def run_pipeline(inject_broken_url: bool = True) -> tuple[dict, dict]:
     valid_records, error_records = process_and_validate_records(raw_records)
     save_result = save_records(valid_records, error_records, output_dir=OUTPUT_DIR)
     
+    # Extras: CSV Export
+    csv_file = export_to_csv(valid_records, output_path=os.path.join(OUTPUT_DIR, "books.csv"))
+
     print(f"  Valid records saved: {save_result['books_saved']} -> {save_result['books_file']}")
+    print(f"  CSV export saved:    {len(valid_records)} -> {csv_file}")
     print(f"  Invalid records:     {save_result['errors_saved']} -> {save_result['errors_file']}")
     print(f"  [OK] Stage 4 complete: {len(valid_records)} verified records stored.\n")
 
