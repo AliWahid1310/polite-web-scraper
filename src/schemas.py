@@ -33,11 +33,12 @@ class BookRecord(BaseModel):
             raise ValueError("Title must not be empty or whitespace only")
         return trimmed
 
-    class Config:
-        json_encoders = {
+    model_config = {
+        "json_encoders": {
             HttpUrl: str,
             datetime: lambda v: v.isoformat(),
         }
+    }
 
 
 class ErrorRecord(BaseModel):
