@@ -25,6 +25,7 @@ from urllib.parse import urljoin
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from bs4 import BeautifulSoup
+from src.dashboard import generate_dashboard_html
 from src.exporters import export_to_csv
 from src.extract import extract_book_detail
 from src.reporter import ScraperReporter
@@ -263,6 +264,14 @@ def run_pipeline(inject_broken_url: bool = True) -> tuple[dict, dict]:
     report_data = reporter.finish_run(valid_records, error_records)
     report_path = os.path.join(OUTPUT_DIR, "run-report.json")
     print(f"  [OK] Report saved to {report_path}")
+
+    # Extras: Generate Visual Dashboard
+    dashboard_path = generate_dashboard_html(
+        books_json_path=os.path.join(OUTPUT_DIR, "books.json"),
+        report_json_path=report_path,
+        output_html_path=os.path.join(OUTPUT_DIR, "dashboard.html"),
+    )
+    print(f"  [OK] Visual dashboard saved to {dashboard_path}\n")
     print(json.dumps(report_data, indent=2))
 
     return save_result, report_data
