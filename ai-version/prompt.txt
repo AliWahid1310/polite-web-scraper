@@ -1,0 +1,33 @@
+=== PROMPT: AI REMATCH SPECIFICATION ===
+
+Build an end-to-end polite web scraping pipeline in Python for the sandbox bookstore target: https://books.toscrape.com/catalogue/page-1.html.
+
+Requirements:
+1. Scope: Crawl only the first 3 catalogue pages by following pagination links (<li class="next"><a href="...">). Collect all 60 unique book detail URLs using urllib.parse.urljoin (no naive string concatenation).
+2. Politeness & Caching:
+   - Identify with a polite User-Agent header: PoliteWebScraper/1.0 (+https://github.com/AliWahid1310/polite-web-scraper).
+   - Enforce a 10s request timeout on all network calls.
+   - Enforce at least 500ms delay between real outbound HTTP requests.
+   - Implement local disk caching in cache/: on first run fetch and save HTML, on rerun read from cache (0 network traffic).
+3. Raw Extraction:
+   - For every book detail page, extract 8 fields:
+     * title: string
+     * product_url: canonical absolute URL
+     * price_text: string with currency symbol (e.g. "£51.77")
+     * availability_text: string (e.g. "In stock (22 available)")
+     * rating_text: string star word (e.g. "Three")
+     * description: string or None if missing
+     * source_page: catalogue URL where link was found (provenance)
+     * fetched_at: ISO 8601 UTC timestamp (provenance)
+4. Normalization & Schema Validation:
+   - Use Pydantic v2 to validate each record.
+   - Normalize price_text -> price_gbp (float > 0).
+   - Normalize availability_text -> stock_count (integer >= 0).
+   - Normalize rating_text -> rating (integer 1-5).
+   - Deduplicate records by canonical product_url (idempotent output).
+   - Valid records stored to output/books.json (exactly 60 records).
+   - Invalid records routed to output/errors.json with validation error reasons.
+5. Resilience & Run Reporting:
+   - Isolate each page fetch in try-except: one broken/404 page must not crash the run.
+   - Retry transient 5xx/timeouts once; never retry 404 or 403.
+   - Generate output/run-report.json with: start_time, end_time, duration_seconds, catalogue_pages_fetched, detail_pages_fetched, cache_hits, network_requests, valid_records, invalid_records, failed_pages, failed_urls.
