@@ -1,0 +1,5 @@
+{"timestamp": "2026-08-18T12:05:49.706478+00:00", "level": "INFO", "event": "PIPELINE_START", "base_url": "https://books.toscrape.com/catalogue/page-1.html", "max_pages": 3}
+{"timestamp": "2026-08-18T12:05:50.117509+00:00", "level": "INFO", "event": "CATALOGUE_DISCOVERY_COMPLETE", "count": 60}
+{"timestamp": "2026-08-18T12:05:50.118423+00:00", "level": "WARN", "event": "INJECTED_TEST_BROKEN_URL", "url": "https://books.toscrape.com/catalogue/deliberately-broken-page-404_99999/index.html"}
+{"timestamp": "2026-08-18T12:05:57.452683+00:00", "level": "INFO", "event": "DETAIL_EXTRACTION_COMPLETE", "count": 60}
+{"timestamp": "2026-08-18T12:05:57.486207+00:00", "level": "INFO", "event": "RECORDS_VALIDATED_AND_STORED", "valid": 60, "errors": 0}

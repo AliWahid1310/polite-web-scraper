@@ -28,6 +28,7 @@ from bs4 import BeautifulSoup
 from src.dashboard import generate_dashboard_html
 from src.exporters import export_to_csv
 from src.extract import extract_book_detail
+from src.logger import StructuredLogger
 from src.reporter import ScraperReporter
 from src.retry import polite_get_with_retry
 from src.storage import process_and_validate_records, save_records
@@ -217,6 +218,9 @@ def run_pipeline(inject_broken_url: bool = True) -> tuple[dict, dict]:
     """
     Execute the full polite scraping pipeline end-to-end.
     """
+    logger = StructuredLogger(log_path=os.path.join(OUTPUT_DIR, "scraper.log.jsonl"))
+    logger.info("PIPELINE_START", base_url=BASE_URL, max_pages=MAX_CATALOGUE_PAGES)
+
     reporter = ScraperReporter(output_dir=OUTPUT_DIR)
     reporter.start_run()
 
@@ -230,9 +234,11 @@ def run_pipeline(inject_broken_url: bool = True) -> tuple[dict, dict]:
     book_entries = discover_books(BASE_URL, reporter=reporter)
     if not book_entries:
         print("  [FAIL] No books discovered. Aborting.")
+        logger.error("CATALOGUE_DISCOVERY_FAILED", base_url=BASE_URL)
         reporter.finish_run([], [])
         return {}, {}
     print(f"  [OK] {len(book_entries)} unique book URLs collected\n")
+    logger.info("CATALOGUE_DISCOVERY_COMPLETE", count=len(book_entries))
 
     # Stage 5 resilience demonstration: inject 1 broken URL
     if inject_broken_url:
@@ -241,15 +247,18 @@ def run_pipeline(inject_broken_url: bool = True) -> tuple[dict, dict]:
             "url": TEST_BROKEN_URL,
             "source_page": "https://books.toscrape.com/catalogue/page-1.html",
         })
+        logger.warn("INJECTED_TEST_BROKEN_URL", url=TEST_BROKEN_URL)
 
     # Stage 3 & 5: Extract raw records
     raw_records = extract_all_raw_records(book_entries, reporter=reporter)
     print(f"  [OK] Detail extraction complete: {len(raw_records)} records\n")
+    logger.info("DETAIL_EXTRACTION_COMPLETE", count=len(raw_records))
 
     # Stage 4: Normalize, validate, store
     print("[Stage 4] Normalizing and schema-validating records ...")
     valid_records, error_records = process_and_validate_records(raw_records)
     save_result = save_records(valid_records, error_records, output_dir=OUTPUT_DIR)
+    logger.info("RECORDS_VALIDATED_AND_STORED", valid=len(valid_records), errors=len(error_records))
     
     # Extras: CSV Export
     csv_file = export_to_csv(valid_records, output_path=os.path.join(OUTPUT_DIR, "books.csv"))
