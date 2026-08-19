@@ -6,6 +6,7 @@ polite rate limits, thread-safety, and idempotent writing.
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Callable
+
 from src.extract import extract_book_detail
 
 
@@ -28,7 +29,7 @@ class PoliteWorkerPool:
         Returns aggregated raw extracted records.
         """
         results = []
-        
+
         def _scrape_worker(entry: dict) -> dict | None:
             url = entry.get("url", "")
             source_page = entry.get("source_page", "")
