@@ -7,7 +7,8 @@ Enforces strict schema validation and keeps model opinions separated from scrape
 
 from typing import Optional
 import requests
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
+
 from src.schemas import BookRecord
 
 OLLAMA_ENDPOINT = "http://localhost:11434/api/generate"
@@ -15,9 +16,9 @@ OLLAMA_ENDPOINT = "http://localhost:11434/api/generate"
 
 class AIEnrichmentMetadata(BaseModel):
     """Encapsulates AI generated semantic enrichment, isolated from factual data."""
-    ai_category: str = Field(..., description="LLM inferred genre / category")
-    ai_one_sentence_summary: str = Field(..., description="LLM distilled one-sentence summary")
-    model_name: str = Field(..., description="Name of local LLM or fallback used")
+    ai_category: str = Field(..., min_length=1, description="LLM inferred genre / category")
+    ai_one_sentence_summary: str = Field(..., min_length=1, description="LLM distilled one-sentence summary")
+    model_name: str = Field(..., min_length=1, description="Name of local LLM or fallback used")
 
 
 class EnrichedBookRecord(BaseModel):
@@ -29,10 +30,10 @@ class EnrichedBookRecord(BaseModel):
 def _heuristic_semantic_classifier(title: str, description: Optional[str]) -> AIEnrichmentMetadata:
     """
     Deterministic fallback when Ollama local daemon is offline.
-    Infers category from textual cues without external network dependencies.
+    Infers category and short summary from textual cues without external network dependencies.
     """
     text = f"{title} {description or ''}".lower()
-    
+
     if any(k in text for k in ["poem", "poetry", "verse", "rhyme", "silverstein"]):
         category = "Poetry"
     elif any(k in text for k in ["history", "war", "century", "country", "berlin", "olympic"]):
@@ -44,8 +45,8 @@ def _heuristic_semantic_classifier(title: str, description: Optional[str]) -> AI
     else:
         category = "General Literature"
 
-    # Short summary
-    if description:
+    # Short summary extraction
+    if description and description.strip():
         first_sentence = description.split(".")[0].strip()
         summary = f"{first_sentence}." if first_sentence else f"A book about {title}."
     else:
@@ -65,7 +66,7 @@ def enrich_book_record(
 ) -> EnrichedBookRecord:
     """
     Enrich a BookRecord using Ollama local model, falling back to local classifier.
-    Guarantees strict schema enforcement.
+    Guarantees strict schema enforcement and error resilience.
     """
     prompt = (
         f"Analyze the following book:\n"
@@ -85,14 +86,20 @@ def enrich_book_record(
         if resp.status_code == 200:
             data = resp.json()
             response_text = data.get("response", "")
-            
+
             category = "General"
-            summary = "Summary generated."
+            summary = f"A book about {record.title}."
+
             for line in response_text.splitlines():
-                if line.startswith("CATEGORY:"):
-                    category = line.replace("CATEGORY:", "").strip()
-                elif line.startswith("SUMMARY:"):
-                    summary = line.replace("SUMMARY:", "").strip()
+                clean_line = line.strip()
+                if clean_line.upper().startswith("CATEGORY:"):
+                    parsed_cat = clean_line.split(":", 1)[1].strip()
+                    if parsed_cat:
+                        category = parsed_cat
+                elif clean_line.upper().startswith("SUMMARY:"):
+                    parsed_sum = clean_line.split(":", 1)[1].strip()
+                    if parsed_sum:
+                        summary = parsed_sum
 
             enrichment = AIEnrichmentMetadata(
                 ai_category=category,
@@ -102,8 +109,9 @@ def enrich_book_record(
             return EnrichedBookRecord(scraped_facts=record, ai_enrichment=enrichment)
 
     except Exception:
+        # Gracefully handle any connection errors, timeout, JSON errors, or validation issues
         pass
 
-    # Fallback
+    # Deterministic resilient fallback
     fallback_enrichment = _heuristic_semantic_classifier(record.title, record.description)
     return EnrichedBookRecord(scraped_facts=record, ai_enrichment=fallback_enrichment)
