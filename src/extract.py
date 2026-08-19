@@ -4,6 +4,7 @@ Extracts raw fields without loss or premature conversion.
 """
 
 from datetime import datetime, timezone
+
 from bs4 import BeautifulSoup
 
 RATING_MAP = {
@@ -20,7 +21,7 @@ def extract_rating_text(soup: BeautifulSoup) -> str:
     rating_tag = soup.select_one("p.star-rating")
     if not rating_tag:
         return "Unknown"
-    
+
     classes = rating_tag.get("class", [])
     for cls in classes:
         if cls in RATING_MAP:
@@ -31,7 +32,7 @@ def extract_rating_text(soup: BeautifulSoup) -> str:
 def extract_book_detail(html: str, product_url: str, source_page: str) -> dict:
     """
     Extract the 8 raw fields from a book's detail page HTML.
-    
+
     Returns:
         dict: {
             "title": str,
