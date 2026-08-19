@@ -5,6 +5,7 @@ while strictly forbidding retries on definitive client errors (404, 403).
 """
 
 import time
+
 import requests
 
 DEFAULT_TIMEOUT = 10
@@ -35,7 +36,7 @@ def polite_get_with_retry(
 ) -> tuple[requests.Response | None, int | None, Exception | None]:
     """
     Send an HTTP GET request with a polite single-retry on transient errors.
-    
+
     Returns:
         tuple (response, status_code, exception)
     """
@@ -48,12 +49,12 @@ def polite_get_with_retry(
             resp = requests.get(url, headers=headers, timeout=timeout)
             if resp.status_code == 200:
                 return resp, 200, None
-            
+
             # Check if this status warrants a retry
             if should_retry(resp.status_code, None) and attempt <= max_retries:
                 time.sleep(RETRY_DELAY)
                 continue
-            
+
             return resp, resp.status_code, None
 
         except requests.RequestException as exc:
