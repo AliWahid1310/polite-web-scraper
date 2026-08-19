@@ -33,6 +33,7 @@ polite-scraper = "src.cli:main"
 minversion = "7.0"
 addopts = "-ra -q --strict-markers"
 testpaths = ["tests"]
+pythonpath = ["."]
 filterwarnings = [
     "error",
 ]
@@ -40,5 +41,13 @@ filterwarnings = [
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+
+[tool.ruff.lint]
 select = ["E", "F", "W", "I"]
 ignore = ["E501"]
+
+[tool.pyright]
+include = ["src", "tests"]
+extraPaths = [".", "src"]
+pythonVersion = "3.10"
+pythonPlatform = "Windows"
