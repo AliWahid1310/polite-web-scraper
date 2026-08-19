@@ -6,6 +6,7 @@ Enforces strict schema validation and keeps model opinions separated from scrape
 """
 
 from typing import Optional
+
 import requests
 from pydantic import BaseModel, Field
 
