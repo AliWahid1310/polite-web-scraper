@@ -48,6 +48,11 @@ ignore = ["E501"]
 
 [tool.pyright]
 include = ["src", "tests"]
-extraPaths = [".", "src"]
+extraPaths = [
+    ".",
+    "src",
+    "C:/Users/PMLS/AppData/Local/Programs/Python/Python313/Lib/site-packages",
+]
+pythonPath = "C:/Users/PMLS/AppData/Local/Programs/Python/Python313/python.exe"
 pythonVersion = "3.10"
 pythonPlatform = "Windows"
