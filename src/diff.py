@@ -6,6 +6,7 @@ Identifies: new records, modified records, unchanged records, and removed record
 
 import hashlib
 import json
+
 from src.schemas import BookRecord
 
 
@@ -43,7 +44,7 @@ def detect_changes(
 ) -> dict:
     """
     Compare current scrape results with previous baseline records.
-    
+
     Returns:
         dict: {
             "new_count": int,
