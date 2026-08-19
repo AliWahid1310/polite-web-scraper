@@ -5,7 +5,7 @@ polite rate limits, thread-safety, and idempotent writing.
 """
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Callable, Any
+from typing import Callable
 from src.extract import extract_book_detail
 
 
