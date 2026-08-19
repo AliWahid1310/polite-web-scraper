@@ -5,6 +5,7 @@ Produces flattened CSV records from schema-validated BookRecords.
 
 import csv
 import os
+
 from src.schemas import BookRecord
 
 

@@ -271,7 +271,7 @@ def generate_dashboard_html(
 
     function filterTable() {{
       const query = document.getElementById("searchInput").value.toLowerCase();
-      const filtered = books.filter(b => 
+      const filtered = books.filter(b =>
         b.title.toLowerCase().includes(query) ||
         b.availability_text.toLowerCase().includes(query) ||
         b.price_text.toLowerCase().includes(query) ||

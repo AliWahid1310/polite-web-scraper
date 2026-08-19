@@ -25,6 +25,7 @@ from urllib.parse import urljoin
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from bs4 import BeautifulSoup
+
 from src.dashboard import generate_dashboard_html
 from src.exporters import export_to_csv
 from src.extract import extract_book_detail
@@ -65,7 +66,7 @@ def _cache_path(url: str) -> str:
 def fetch_page(url: str, reporter: ScraperReporter | None = None) -> str | None:
     """
     Fetch a page politely with caching and retry capability.
-    
+
     - If cached: read from cache, log CACHE HIT, zero network traffic.
     - If not cached: HTTP GET with custom user-agent, timeout, and transient retry.
     """
@@ -259,7 +260,7 @@ def run_pipeline(inject_broken_url: bool = True) -> tuple[dict, dict]:
     valid_records, error_records = process_and_validate_records(raw_records)
     save_result = save_records(valid_records, error_records, output_dir=OUTPUT_DIR)
     logger.info("RECORDS_VALIDATED_AND_STORED", valid=len(valid_records), errors=len(error_records))
-    
+
     # Extras: CSV Export
     csv_file = export_to_csv(valid_records, output_path=os.path.join(OUTPUT_DIR, "books.csv"))
 
