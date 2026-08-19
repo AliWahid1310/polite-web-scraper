@@ -7,6 +7,7 @@ and guarantees idempotent writing to output/books.json.
 import json
 import os
 from datetime import datetime, timezone
+
 from pydantic import ValidationError
 
 from src.normalizer import normalize_book_record
@@ -23,7 +24,7 @@ def process_and_validate_records(
     """
     Normalize and validate raw scraped records.
     Deduplicates records by canonical product_url.
-    
+
     Returns:
         tuple (valid_records, error_records)
     """
