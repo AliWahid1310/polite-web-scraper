@@ -5,6 +5,7 @@ Transforms raw extracted strings into clean, typed Python representations.
 
 import re
 from typing import Optional
+
 from src.extract import RATING_MAP
 
 
@@ -32,11 +33,11 @@ def normalize_stock_count(availability_text: str) -> int:
     """
     if not availability_text:
         return 0
-    
+
     match = re.search(r"\((\d+)\s+available\)", availability_text, re.IGNORECASE)
     if match:
         return int(match.group(1))
-    
+
     if "in stock" in availability_text.lower():
         return 1
     return 0
@@ -58,7 +59,7 @@ def normalize_book_record(raw: dict) -> dict:
     price_gbp = normalize_price(raw.get("price_text", ""))
     stock_count = normalize_stock_count(raw.get("availability_text", ""))
     rating = normalize_rating(raw.get("rating_text", ""))
-    
+
     # Description clean up (normalize whitespace or keep None)
     desc = raw.get("description")
     if desc is not None:
