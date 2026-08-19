@@ -71,14 +71,14 @@ def save_records(
 
     # Serialize valid records
     serializable_books = [
-        json.loads(record.model_dump_json()) for record in valid_records
+        record.model_dump(mode="json") for record in valid_records
     ]
     with open(books_path, "w", encoding="utf-8") as f:
         json.dump(serializable_books, f, indent=2, ensure_ascii=False)
 
     # Serialize error records
     serializable_errors = [
-        err.model_dump() for err in error_records
+        err.model_dump(mode="json") for err in error_records
     ]
     with open(errors_path, "w", encoding="utf-8") as f:
         json.dump(serializable_errors, f, indent=2, ensure_ascii=False)

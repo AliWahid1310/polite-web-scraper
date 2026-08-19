@@ -147,7 +147,7 @@ def run_ai_scraper():
 
     # Store
     with open(os.path.join(OUTPUT_DIR, "books.json"), "w", encoding="utf-8") as f:
-        json.dump([json.loads(v.model_dump_json()) for v in valid], f, indent=2)
+        json.dump([v.model_dump(mode="json") for v in valid], f, indent=2)
 
     with open(os.path.join(OUTPUT_DIR, "run-report.json"), "w", encoding="utf-8") as f:
         json.dump({
