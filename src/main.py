@@ -26,6 +26,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from bs4 import BeautifulSoup
 
+from src.audit import DatasetAuditor
 from src.dashboard import generate_dashboard_html
 from src.exporters import export_to_csv
 from src.extract import extract_book_detail
@@ -270,10 +271,16 @@ def run_pipeline(inject_broken_url: bool = True) -> tuple[dict, dict]:
     print(f"  [OK] Stage 4 complete: {len(valid_records)} verified records stored.\n")
 
     # Stage 5: Finalize report
-    print("[Stage 5] Generating run report ...")
+    print("[Stage 5] Generating run report and data integrity audit ...")
     report_data = reporter.finish_run(valid_records, error_records)
     report_path = os.path.join(OUTPUT_DIR, "run-report.json")
     print(f"  [OK] Report saved to {report_path}")
+
+    # Generate cryptographic audit manifest
+    raw_dicts = [r.model_dump() if hasattr(r, "model_dump") else r for r in valid_records]
+    manifest_path = os.path.join(OUTPUT_DIR, "audit-manifest.json")
+    DatasetAuditor.generate_audit_manifest(raw_dicts, output_path=manifest_path)
+    print(f"  [OK] Audit manifest saved to {manifest_path}")
 
     # Extras: Generate Visual Dashboard
     dashboard_path = generate_dashboard_html(

@@ -1,12 +1,16 @@
 """
 Scraper execution reporter module.
-Collects runtime metrics and generates output/run-report.json.
+Collects runtime metrics, computes analytics summaries, and generates output/run-report.json.
 """
+
+from __future__ import annotations
 
 import json
 import os
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
+
+from src.analytics import generate_full_analytics_summary
 
 
 @dataclass
@@ -27,6 +31,7 @@ class RunMetrics:
     failed_urls: list[dict] = field(default_factory=list)
     average_price_gbp: float = 0.0
     stock_total_units: int = 0
+    analytics_summary: dict = field(default_factory=dict)
 
 
 class ScraperReporter:
@@ -70,13 +75,24 @@ class ScraperReporter:
         self.metrics.invalid_records = len(error_records)
 
         # Statistical aggregates
+        dict_records = []
         if valid_records:
-            prices = [r.price_gbp for r in valid_records if hasattr(r, "price_gbp")]
-            stocks = [r.stock_count for r in valid_records if hasattr(r, "stock_count")]
+            for r in valid_records:
+                if hasattr(r, "model_dump"):
+                    dict_records.append(r.model_dump())
+                elif isinstance(r, dict):
+                    dict_records.append(r)
+                elif hasattr(r, "__dict__"):
+                    dict_records.append(r.__dict__)
+
+            prices = [r.get("price_gbp", 0.0) for r in dict_records if "price_gbp" in r]
+            stocks = [r.get("stock_count", 0) for r in dict_records if "stock_count" in r]
             if prices:
                 self.metrics.average_price_gbp = round(sum(prices) / len(prices), 2)
             if stocks:
                 self.metrics.stock_total_units = sum(stocks)
+
+            self.metrics.analytics_summary = generate_full_analytics_summary(dict_records)
 
         os.makedirs(self.output_dir, exist_ok=True)
         report_path = os.path.join(self.output_dir, "run-report.json")
