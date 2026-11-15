@@ -67,16 +67,25 @@ def normalize_book_record(raw: dict) -> dict:
         if not desc:
             desc = None
 
+    # Calculate computed fields
+    is_in_stock = stock_count > 0
+    total_val = round((price_gbp or 0.0) * stock_count, 2)
+    category = raw.get("category")
+
     return {
         "title": raw.get("title", "").strip(),
         "product_url": raw.get("product_url", "").strip(),
         "price_text": raw.get("price_text", "").strip(),
         "price_gbp": price_gbp,
+        "currency": "GBP",
         "availability_text": raw.get("availability_text", "").strip(),
         "stock_count": stock_count,
+        "is_in_stock": is_in_stock,
+        "total_inventory_value_gbp": total_val,
         "rating_text": raw.get("rating_text", "").strip(),
         "rating": rating,
         "description": desc,
+        "category": category,
         "source_page": raw.get("source_page", "").strip(),
         "fetched_at": raw.get("fetched_at", ""),
     }
