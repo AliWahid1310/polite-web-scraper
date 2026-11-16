@@ -1,21 +1,27 @@
 """
 Polite Web Scraper — Command Line Interface (CLI).
-Allows customizable execution of individual stages and pipeline options.
+Allows customizable execution of individual stages, pipeline options,
+export format selection, and SQLite queries.
 
 Usage Examples:
     python src/cli.py --help
     python src/cli.py --max-pages 3
     python src/cli.py --stage 2
-    python src/cli.py --no-broken-test --export-csv --dashboard
+    python src/cli.py --export-format markdown
+    python src/cli.py --query "poetry"
 """
 
+from __future__ import annotations
+
 import argparse
+import json
 import os
 import sys
 
 # Ensure project root in sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from src.exporters import export_all_formats, export_to_csv, export_to_markdown_table, export_to_ndjson, export_to_xml
 from src.main import (
     BASE_URL,
     OUTPUT_DIR,
@@ -23,6 +29,7 @@ from src.main import (
     fetch_page,
     run_pipeline,
 )
+from src.sqlite_storage import SQLiteStorageManager
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -55,6 +62,19 @@ def build_parser() -> argparse.ArgumentParser:
         default=OUTPUT_DIR,
         help=f"Directory to save output files (default: {OUTPUT_DIR})",
     )
+    parser.add_argument(
+        "--export-format",
+        type=str,
+        default="all",
+        choices=["all", "csv", "markdown", "ndjson", "xml"],
+        help="Target format to export records (default: all)",
+    )
+    parser.add_argument(
+        "--query",
+        type=str,
+        default=None,
+        help="Search the local SQLite database for books matching a title or description substring",
+    )
 
     return parser
 
@@ -62,6 +82,20 @@ def build_parser() -> argparse.ArgumentParser:
 def main():
     parser = build_parser()
     args = parser.parse_args()
+
+    # Query mode for local SQLite DB
+    if args.query:
+        db_path = os.path.join(args.output_dir, "books.db")
+        if not os.path.exists(db_path):
+            print(f"[ERROR] Database file not found at {db_path}. Run the scraper pipeline first.")
+            return
+
+        db_manager = SQLiteStorageManager(db_path=db_path)
+        results = db_manager.query_books(search_term=args.query)
+        print(f"\n[QUERY] Search for '{args.query}' returned {len(results)} books:\n")
+        for b in results:
+            print(f"  - [{b['rating']}★] {b['title']} (£{b['price_gbp']}) — {b['availability_text']}")
+        return
 
     print(f"\n[CLI] Running Polite Web Scraper with Stage={args.stage.upper()}, MaxPages={args.max_pages}")
 
@@ -85,6 +119,22 @@ def main():
     # Full pipeline
     inject_broken = not args.no_broken_test
     run_pipeline(inject_broken_url=inject_broken)
+
+    # Specific format re-export if not all
+    if args.export_format != "all":
+        books_json_path = os.path.join(args.output_dir, "books.json")
+        if os.path.exists(books_json_path):
+            with open(books_json_path, "r", encoding="utf-8") as f:
+                books = json.load(f)
+            if args.export_format == "csv":
+                p = export_to_csv(books, os.path.join(args.output_dir, "books.csv"))
+            elif args.export_format == "markdown":
+                p = export_to_markdown_table(books, os.path.join(args.output_dir, "books.md"))
+            elif args.export_format == "ndjson":
+                p = export_to_ndjson(books, os.path.join(args.output_dir, "books.ndjson"))
+            elif args.export_format == "xml":
+                p = export_to_xml(books, os.path.join(args.output_dir, "books.xml"))
+            print(f"[EXPORT] Re-exported {len(books)} records to {p}")
 
 
 if __name__ == "__main__":
