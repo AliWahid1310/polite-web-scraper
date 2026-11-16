@@ -7,7 +7,8 @@ with full search, filtering, and statistical aggregations.
 from __future__ import annotations
 
 import sqlite3
-from typing import Any
+from contextlib import contextmanager
+from typing import Any, Generator
 
 
 class SQLiteStorageManager:
@@ -20,9 +21,18 @@ class SQLiteStorageManager:
         self.db_path = db_path
         self.init_db()
 
+    @contextmanager
+    def _connection(self) -> Generator[sqlite3.Connection, None, None]:
+        """Context manager that guarantees connection is closed promptly."""
+        conn = sqlite3.connect(self.db_path)
+        try:
+            yield conn
+        finally:
+            conn.close()
+
     def init_db(self) -> None:
         """Create tables and indexes if they do not exist."""
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS books (
@@ -59,7 +69,7 @@ class SQLiteStorageManager:
             return 0
 
         inserted_count = 0
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connection() as conn:
             cursor = conn.cursor()
             for r in records:
                 cursor.execute("""
@@ -166,7 +176,7 @@ class SQLiteStorageManager:
         """
 
         results = []
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connection() as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             for row in cursor.execute(query, params):
@@ -175,7 +185,7 @@ class SQLiteStorageManager:
 
     def get_statistics(self) -> dict[str, Any]:
         """Return aggregate statistics from the SQLite database."""
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT
