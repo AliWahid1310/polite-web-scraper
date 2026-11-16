@@ -28,7 +28,7 @@ from bs4 import BeautifulSoup
 
 from src.audit import DatasetAuditor
 from src.dashboard import generate_dashboard_html
-from src.exporters import export_to_csv
+from src.exporters import export_all_formats, export_to_csv
 from src.extract import extract_book_detail
 from src.logger import StructuredLogger
 from src.reporter import ScraperReporter
@@ -262,11 +262,13 @@ def run_pipeline(inject_broken_url: bool = True) -> tuple[dict, dict]:
     save_result = save_records(valid_records, error_records, output_dir=OUTPUT_DIR)
     logger.info("RECORDS_VALIDATED_AND_STORED", valid=len(valid_records), errors=len(error_records))
 
-    # Extras: CSV Export
-    csv_file = export_to_csv(valid_records, output_path=os.path.join(OUTPUT_DIR, "books.csv"))
+    # Extras: Multi-Format Exporters (CSV, Markdown, NDJSON, XML)
+    export_paths = export_all_formats(valid_records, base_dir=OUTPUT_DIR)
 
     print(f"  Valid records saved: {save_result['books_saved']} -> {save_result['books_file']}")
-    print(f"  CSV export saved:    {len(valid_records)} -> {csv_file}")
+    print(f"  SQLite DB synced:    {save_result.get('sqlite_synced', 0)} -> {save_result.get('sqlite_db')}")
+    print(f"  CSV export saved:    {len(valid_records)} -> {export_paths['csv']}")
+    print(f"  Markdown catalogue:  {len(valid_records)} -> {export_paths['markdown']}")
     print(f"  Invalid records:     {save_result['errors_saved']} -> {save_result['errors_file']}")
     print(f"  [OK] Stage 4 complete: {len(valid_records)} verified records stored.\n")
 

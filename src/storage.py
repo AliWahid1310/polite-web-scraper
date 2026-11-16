@@ -1,21 +1,26 @@
 """
 Pipeline storage and validation module.
 Enforces Pydantic schema validation, separates invalid records into errors.json,
-and guarantees idempotent writing to output/books.json.
+and guarantees idempotent writing to output/books.json and SQLite database.
 """
+
+from __future__ import annotations
 
 import json
 import os
 from datetime import datetime, timezone
+from typing import Any
 
 from pydantic import ValidationError
 
 from src.normalizer import normalize_book_record
 from src.schemas import BookRecord, ErrorRecord
+from src.sqlite_storage import SQLiteStorageManager
 
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "output")
 BOOKS_FILE = os.path.join(OUTPUT_DIR, "books.json")
 ERRORS_FILE = os.path.join(OUTPUT_DIR, "errors.json")
+DB_FILE = os.path.join(OUTPUT_DIR, "books.db")
 
 
 def process_and_validate_records(
@@ -61,14 +66,17 @@ def save_records(
     valid_records: list[BookRecord],
     error_records: list[ErrorRecord],
     output_dir: str = OUTPUT_DIR,
-) -> dict:
+    sync_sqlite: bool = True,
+) -> dict[str, Any]:
     """
     Persist valid records to output/books.json and errors to output/errors.json.
+    Optionally synchronizes to SQLite database.
     Idempotent operation (overwrites previous runs cleanly).
     """
     os.makedirs(output_dir, exist_ok=True)
     books_path = os.path.join(output_dir, "books.json")
     errors_path = os.path.join(output_dir, "errors.json")
+    db_path = os.path.join(output_dir, "books.db")
 
     # Serialize valid records
     serializable_books = [
@@ -84,9 +92,16 @@ def save_records(
     with open(errors_path, "w", encoding="utf-8") as f:
         json.dump(serializable_errors, f, indent=2, ensure_ascii=False)
 
+    sqlite_synced = 0
+    if sync_sqlite and serializable_books:
+        sqlite_manager = SQLiteStorageManager(db_path=db_path)
+        sqlite_synced = sqlite_manager.upsert_books(serializable_books)
+
     return {
         "books_saved": len(valid_records),
         "errors_saved": len(error_records),
         "books_file": books_path,
         "errors_file": errors_path,
+        "sqlite_synced": sqlite_synced,
+        "sqlite_db": db_path if sync_sqlite else None,
     }
