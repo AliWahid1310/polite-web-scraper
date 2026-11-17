@@ -30,6 +30,7 @@ from src.audit import DatasetAuditor
 from src.dashboard import generate_dashboard_html
 from src.exporters import export_all_formats, export_to_csv
 from src.extract import extract_book_detail
+from src.headers import RespectfulHeaderManager
 from src.logger import StructuredLogger
 from src.reporter import ScraperReporter
 from src.retry import polite_get_with_retry
@@ -38,6 +39,7 @@ from src.storage import process_and_validate_records, save_records
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
+HEADER_MANAGER = RespectfulHeaderManager()
 BASE_URL = "https://books.toscrape.com/catalogue/page-1.html"
 USER_AGENT = (
     "PoliteWebScraper/1.0 "
@@ -86,7 +88,7 @@ def fetch_page(url: str, reporter: ScraperReporter | None = None) -> str | None:
 
     resp, status_code, exc = polite_get_with_retry(
         url=url,
-        user_agent=USER_AGENT,
+        headers=HEADER_MANAGER.get_request_headers(),
         timeout=REQUEST_TIMEOUT,
         max_retries=1,
     )
