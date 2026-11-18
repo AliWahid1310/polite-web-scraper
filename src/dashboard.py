@@ -813,17 +813,18 @@ def generate_dashboard_html(
         a.download = 'books_filtered.json';
         a.click();
       }} else if (format === 'csv') {{
-        const header = ["title", "price_gbp", "rating", "stock_count", "availability_text", "product_url"];
+        const header = ["title", "price_gbp", "rating", "stock_count", "availability_text", "product_url", "source_page"];
         const rows = filteredBooks.map(b => [
-          `"${{b.title.replace(/"/g, '""')}}"`,
+          `"${{(b.title || '').replace(/"/g, '""')}}"`,
           b.price_gbp,
           b.rating,
           b.stock_count,
-          `"${{b.availability_text}}"`,
-          `"${{b.product_url}}"`
+          `"${{(b.availability_text || '').replace(/"/g, '""')}}"`,
+          `"${{(b.product_url || '')}}"`,
+          `"${{(b.source_page || '')}}"`
         ]);
         const csvContent = [header.join(','), ...rows.map(r => r.join(','))].join('\\n');
-        const blob = new Blob([csvContent], {{ type: 'text/csv' }});
+        const blob = new Blob([csvContent], {{ type: 'text/csv;charset=utf-8;' }});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
