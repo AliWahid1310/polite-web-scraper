@@ -49,17 +49,17 @@ def generate_dashboard_html(
     in_stock_count = sum(1 for b in books if int(b.get("stock_count", 0)) > 0)
     out_of_stock_count = len(books) - in_stock_count
 
-    # Price histogram distribution bins
-    price_bins = {"£0-£20": 0, "£20-£40": 0, "£40-£60": 0, "£60+": 0}
+    # Price histogram distribution bins with formatted labels
+    price_bins = {"Under £20": 0, "£20 to £40": 0, "£40 to £60": 0, "Over £60": 0}
     for p in prices:
         if p < 20.0:
-            price_bins["£0-£20"] += 1
+            price_bins["Under £20"] += 1
         elif p < 40.0:
-            price_bins["£20-£40"] += 1
+            price_bins["£20 to £40"] += 1
         elif p < 60.0:
-            price_bins["£40-£60"] += 1
+            price_bins["£40 to £60"] += 1
         else:
-            price_bins["£60+"] += 1
+            price_bins["Over £60"] += 1
 
     books_json_embedded = json.dumps(books, ensure_ascii=False)
     report_json_embedded = json.dumps(report, ensure_ascii=False)
