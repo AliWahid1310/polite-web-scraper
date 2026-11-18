@@ -629,6 +629,7 @@ def generate_dashboard_html(
       <div class="modal-desc" id="mDesc">Description text...</div>
       <div class="modal-provenance" id="mProvenance"></div>
       <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="copyModalJson()">Copy JSON</button>
         <a id="mProductLink" class="btn btn-primary" href="#" target="_blank" rel="noopener">Open Product Page &rarr;</a>
       </div>
     </div>
@@ -765,8 +766,11 @@ def generate_dashboard_html(
       applyFilters();
     }}
 
+    let currentModalBook = null;
+
     // Modal
     function openModal(b) {{
+      currentModalBook = b;
       document.getElementById("mTitle").innerText = b.title;
       const stars = "★".repeat(b.rating) + "☆".repeat(5 - b.rating);
       document.getElementById("mMeta").innerHTML = `
@@ -782,6 +786,13 @@ def generate_dashboard_html(
       `;
       document.getElementById("mProductLink").href = b.product_url;
       document.getElementById("bookModal").style.display = "flex";
+    }}
+
+    function copyModalJson() {{
+      if (currentModalBook) {{
+        navigator.clipboard.writeText(JSON.stringify(currentModalBook, null, 2));
+        alert("Book record copied to clipboard as formatted JSON!");
+      }}
     }}
 
     function closeModal() {{
