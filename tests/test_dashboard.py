@@ -5,6 +5,7 @@ Unit tests for local HTML dashboard generator (src/dashboard.py).
 import json
 import os
 import tempfile
+
 from src.dashboard import generate_dashboard_html
 
 
@@ -56,4 +57,8 @@ def test_generate_dashboard_html_structure():
         assert "<!DOCTYPE html>" in content
         assert "The Polite Scraper" in content
         assert "Dashboard Book" in content
-        assert "£25.00" in content
+        assert "chart.js" in content.lower()
+        assert "bookModal" in content
+        assert "priceChart" in content
+        assert "ratingChart" in content
+        assert "exportData" in content
