@@ -598,6 +598,7 @@ def generate_dashboard_html(
         <div class="chip active" onclick="setStockFilter('all', this)">All</div>
         <div class="chip" onclick="setStockFilter('instock', this)">In Stock Only</div>
         <div class="chip" onclick="setStockFilter('outofstock', this)">Out of Stock</div>
+        <span id="resultCountBadge" style="margin-left: auto; font-size: 13px; color: var(--primary); font-family: 'JetBrains Mono', monospace; font-weight: 600;"></span>
       </div>
     </div>
 
@@ -743,6 +744,9 @@ def generate_dashboard_html(
       else if (sortVal === "rating_desc") filteredBooks.sort((a, b) => b.rating - a.rating);
       else if (sortVal === "stock_desc") filteredBooks.sort((a, b) => b.stock_count - a.stock_count);
       else if (sortVal === "title_asc") filteredBooks.sort((a, b) => a.title.localeCompare(b.title));
+
+      const countBadge = document.getElementById("resultCountBadge");
+      if (countBadge) countBadge.innerText = `Showing ${{filteredBooks.length}} of ${{books.length}} titles`;
 
       renderTable(filteredBooks);
     }}
