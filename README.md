@@ -158,7 +158,33 @@ This scraper is purpose-built for **static server-rendered HTML** with standard 
 
 ---
 
-## 10. Extras & Bonus Features Included
+## 10. Built-in Web Server & REST API
+
+The Polite Web Scraper includes a zero-dependency local web server built directly on Python's standard library (`http.server`).
+
+### Starting the Server
+```bash
+# Launch server on default port 8080
+python src/cli.py --serve
+
+# Custom port
+python src/cli.py --serve --port 9000
+```
+Open **`http://127.0.0.1:8080/`** in your browser to view the interactive glassmorphic dashboard with Chart.js analytics!
+
+### Available REST API Endpoints
+
+| Endpoint | Method | Description | Parameters |
+|---|---|---|---|
+| `/` or `/dashboard` | `GET` | Interactive Observability Web UI | N/A |
+| `/api/health` | `GET` | Service health and records count | N/A |
+| `/api/stats` | `GET` | Detailed pricing analytics, rating breakdown & inventory values | N/A |
+| `/api/books` | `GET` | Paginated books search & faceted filtering | `?q=`, `?rating=`, `?in_stock=`, `?min_price=`, `?max_price=`, `?sort=`, `?page=`, `?limit=` |
+| `/api/export` | `GET` | Stream download of datasets in selected format | `?format=csv`, `?format=json`, `?format=markdown`, `?format=ndjson`, `?format=xml` |
+
+---
+
+## 11. Extras & Bonus Features Included
 
 - **CSV Export**: `output/books.csv` with cleaned multiline descriptions and flattened fields.
 - **Change Detection**: `src/diff.py` computes deterministic SHA-256 digests to track record mutations across consecutive crawls.
