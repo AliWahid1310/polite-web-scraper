@@ -209,6 +209,14 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
                 p = os.path.join(self.output_dir, "books.md")
                 self._send_file_response(p, content_type="text/markdown", as_attachment=True)
                 return
+            elif fmt == "ndjson":
+                p = os.path.join(self.output_dir, "books.ndjson")
+                self._send_file_response(p, content_type="application/x-ndjson", as_attachment=True)
+                return
+            elif fmt == "xml":
+                p = os.path.join(self.output_dir, "books.xml")
+                self._send_file_response(p, content_type="application/xml", as_attachment=True)
+                return
             else:
                 self.send_error(HTTPStatus.BAD_REQUEST, f"Unsupported export format: {fmt}")
                 return
