@@ -158,6 +158,17 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
                 except ValueError:
                     pass
 
+            # Sorting
+            sort_param = query_params.get("sort", [None])[0]
+            if sort_param == "price_asc":
+                filtered.sort(key=lambda b: float(b.get("price_gbp", 0.0)))
+            elif sort_param == "price_desc":
+                filtered.sort(key=lambda b: float(b.get("price_gbp", 0.0)), reverse=True)
+            elif sort_param == "rating_desc":
+                filtered.sort(key=lambda b: int(b.get("rating", 0)), reverse=True)
+            elif sort_param == "title_asc":
+                filtered.sort(key=lambda b: b.get("title", "").lower())
+
             # Pagination
             try:
                 page = max(1, int(query_params.get("page", [1])[0]))
