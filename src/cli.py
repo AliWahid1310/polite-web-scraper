@@ -29,6 +29,7 @@ from src.main import (
     fetch_page,
     run_pipeline,
 )
+from src.server import run_server
 from src.sqlite_storage import SQLiteStorageManager
 
 
@@ -75,6 +76,17 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Search the local SQLite database for books matching a title or description substring",
     )
+    parser.add_argument(
+        "--serve",
+        action="store_true",
+        help="Launch the live standalone web dashboard and REST API server",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8080,
+        help="Port to bind the web server to (default: 8080)",
+    )
 
     return parser
 
@@ -82,6 +94,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main():
     parser = build_parser()
     args = parser.parse_args()
+
+    # Launch Web Server mode
+    if args.serve:
+        run_server(port=args.port, output_dir=args.output_dir)
+        return
 
     # Query mode for local SQLite DB
     if args.query:
