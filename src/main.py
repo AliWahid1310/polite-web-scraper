@@ -35,6 +35,7 @@ from src.logger import StructuredLogger
 from src.reporter import ScraperReporter
 from src.retry import polite_get_with_retry
 from src.storage import process_and_validate_records, save_records
+from src.terminal_ui import TerminalUI
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -228,13 +229,10 @@ def run_pipeline(inject_broken_url: bool = True) -> tuple[dict, dict]:
     reporter = ScraperReporter(output_dir=OUTPUT_DIR)
     reporter.start_run()
 
-    print("=" * 60)
-    print("  The Polite Web Scraper Pipeline")
-    print("=" * 60)
-    print()
+    TerminalUI.print_banner(title="The Polite Web Scraper", version="2.0")
 
     # Stage 2: Discover catalogue
-    print("[Stage 2] Discovering books from catalogue pages ...")
+    TerminalUI.print_stage_header(2, "Discovering books from catalogue pagination")
     book_entries = discover_books(BASE_URL, reporter=reporter)
     if not book_entries:
         print("  [FAIL] No books discovered. Aborting.")
@@ -246,7 +244,7 @@ def run_pipeline(inject_broken_url: bool = True) -> tuple[dict, dict]:
 
     # Stage 5 resilience demonstration: inject 1 broken URL
     if inject_broken_url:
-        print("[Stage 5 Resilience Test] Injecting 1 test broken URL ...")
+        print("[Resilience Testing] Injecting deliberate test broken URL ...")
         book_entries.append({
             "url": TEST_BROKEN_URL,
             "source_page": "https://books.toscrape.com/catalogue/page-1.html",
@@ -254,12 +252,13 @@ def run_pipeline(inject_broken_url: bool = True) -> tuple[dict, dict]:
         logger.warn("INJECTED_TEST_BROKEN_URL", url=TEST_BROKEN_URL)
 
     # Stage 3 & 5: Extract raw records
+    TerminalUI.print_stage_header(3, f"Extracting 8 raw fields for {len(book_entries)} books")
     raw_records = extract_all_raw_records(book_entries, reporter=reporter)
     print(f"  [OK] Detail extraction complete: {len(raw_records)} records\n")
     logger.info("DETAIL_EXTRACTION_COMPLETE", count=len(raw_records))
 
     # Stage 4: Normalize, validate, store
-    print("[Stage 4] Normalizing and schema-validating records ...")
+    TerminalUI.print_stage_header(4, "Normalizing, Pydantic validation & multi-format storage")
     valid_records, error_records = process_and_validate_records(raw_records)
     save_result = save_records(valid_records, error_records, output_dir=OUTPUT_DIR)
     logger.info("RECORDS_VALIDATED_AND_STORED", valid=len(valid_records), errors=len(error_records))
@@ -275,7 +274,7 @@ def run_pipeline(inject_broken_url: bool = True) -> tuple[dict, dict]:
     print(f"  [OK] Stage 4 complete: {len(valid_records)} verified records stored.\n")
 
     # Stage 5: Finalize report
-    print("[Stage 5] Generating run report and data integrity audit ...")
+    TerminalUI.print_stage_header(5, "Generating execution run-report and cryptographic audit")
     report_data = reporter.finish_run(valid_records, error_records)
     report_path = os.path.join(OUTPUT_DIR, "run-report.json")
     print(f"  [OK] Report saved to {report_path}")
@@ -293,7 +292,16 @@ def run_pipeline(inject_broken_url: bool = True) -> tuple[dict, dict]:
         output_html_path=os.path.join(OUTPUT_DIR, "dashboard.html"),
     )
     print(f"  [OK] Visual dashboard saved to {dashboard_path}\n")
-    print(json.dumps(report_data, indent=2))
+
+    TerminalUI.print_summary_table({
+        "valid_records": len(valid_records),
+        "invalid_records": len(error_records),
+        "duration_seconds": report_data.get("duration_seconds", 0.0),
+        "cache_hits": report_data.get("cache_hits", 0),
+        "network_requests": report_data.get("network_requests", 0),
+        "average_price_gbp": f"£{report_data.get('average_price_gbp', 0.0):.2f}",
+        "stock_total_units": report_data.get("stock_total_units", 0),
+    })
 
     return save_result, report_data
 
