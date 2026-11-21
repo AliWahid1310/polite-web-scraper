@@ -1,21 +1,23 @@
 # The Polite Web Scraper
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-19%20passed-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-69%20passed-brightgreen.svg)]()
+[![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![Architecture: v2.0 Enterprise](https://img.shields.io/badge/architecture-v2.0%20enterprise-blueviolet.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A polite, resilient web scraping pipeline that extracts 3 catalogue pages and 60 book detail pages from [Books to Scrape](https://books.toscrape.com), transforms messy HTML into strict schema-validated JSON and tabular CSV, survives unexpected page failures, and publishes an honest execution report with local observability.
+A polite, resilient, enterprise-grade web scraping platform that extracts 3 catalogue pages and 60 book detail pages from [Books to Scrape](https://books.toscrape.com), transforms messy HTML into strict schema-validated JSON, relational SQLite, CSV, Markdown, NDJSON, and XML, survives unexpected page failures with token-bucket rate limiting and circuit breakers, and serves an interactive glassmorphic visual observability dashboard with Chart.js analytics and REST API endpoints.
 
 ---
 
-## 1. Target Classification
+## 1. Target Classification & Ethics Pledge
 
 | Field | Value |
-|-------|-------|
+|---|---|
 | **Target Site** | [Books to Scrape](https://books.toscrape.com) |
 | **Target Nature** | A public sandbox designed specifically for developers and students to practice web scraping ([toscrape.com](https://toscrape.com)). |
 | **Scope** | First 3 catalogue pages only (60 books total). |
-| **Data Collected** | Title, canonical product URL, price (raw text & GBP float), stock status (raw text & unit count), star rating (text & integer 1–5), product description, catalogue source page, and fetch timestamp. |
+| **Data Collected** | Title, canonical product URL, price (raw text & GBP float), stock status (raw text & unit count), star rating (text & integer 1–5), product description, catalogue source page, inventory valuation, and fetch timestamp. |
 | **robots.txt Check** | `https://books.toscrape.com/robots.txt` returned **HTTP 404 Not Found**. A missing `robots.txt` is not implicit permission for uncontrolled crawling; it is simply a missing file. |
 | **Why Appropriate** | The site owner explicitly encourages scraping practice. We limit our footprint to 3 pages, respect delays, and never overload the host. |
 
@@ -42,7 +44,13 @@ pip install -r requirements.txt
 python src/main.py
 ```
 
-### Run Full Test Suite (19 Unit Tests)
+### Launch Interactive Web Dashboard & REST API
+```bash
+python src/cli.py --serve
+# Open http://127.0.0.1:8080 in your browser!
+```
+
+### Run Full Test Suite (69 Unit Tests)
 ```bash
 python -m pytest tests/ -v
 ```
@@ -53,23 +61,24 @@ python -m pytest tests/ -v
 
 ```mermaid
 graph TD
-    A[Stage 0: Target Classification & robots Check] --> B[Stage 1: Fetch Once & Local Disk Cache]
+    A[Stage 0: Target Classification & robots Check] --> B[Stage 1: Token Bucket & Local Disk Cache]
     B --> C[Stage 2: Discover 3 Catalogue Pages & Collect 60 URLs]
-    C --> D[Stage 3: Extract 8 Raw Fields with Provenance]
+    C --> D[Stage 3: Extract 8 Raw Fields with Circuit Breaker Isolation]
     D --> E[Stage 4: Normalize & Validate with Pydantic v2]
-    E --> F[Stage 5: Graceful Failure Isolation & Retry Policy]
-    F --> G[Stage 6: JSON Storage, CSV Export & Run Report]
-    G --> H[Extras: Visual Observability Dashboard HTML]
+    E --> F[Stage 5: SQLite Relational Sync, Multi-Format Exporters & Audit Manifest]
+    F --> G[Stage 6: Statistical Analytics Engine & IQR Outlier Detection]
+    G --> H[Stage 7: Interactive Glassmorphic Dashboard & REST API]
 ```
 
 ### Pipeline Summary
-1. **Fetch & Cache (`src/main.py`)**: Checks local `cache/` first. Network calls send honest headers and save responses for offline development.
-2. **Discovery (`src/main.py`)**: Traverses catalogue pagination (`li.next > a`) and builds canonical URLs using `urllib.parse.urljoin`.
+1. **Polite Pacing & Cache (`src/rate_limiter.py`, `src/headers.py`)**: Token-bucket algorithm enforces smooth rate limits. Checks local `cache/` first to ensure zero repeated network traffic.
+2. **Resilience & Circuit Breaker (`src/retry.py`, `src/circuit_breaker.py`)**: State-machine circuit breaker trips open on cascading errors; exponential backoff retries transient 5xx while strictly forbidding retries on 404/403.
 3. **Extraction (`src/extract.py`)**: Targets semantic DOM containers (`div.product_main`, `#product_description`) to collect 8 raw fields without data loss.
-4. **Normalization & Validation (`src/normalizer.py`, `src/schemas.py`)**: Converts currency strings (`£51.77` → `51.77`), availability (`In stock (22 available)` → `22`), and star words (`Three` → `3`). Enforces Pydantic schema validation; isolates bad records into `output/errors.json`.
-5. **Resilience (`src/retry.py`, `src/backoff.py`)**: Isolates per-page exceptions, implements exponential backoff with jitter on 5xx/timeouts, and strictly forbids retrying 404/403 errors.
-6. **Reporting (`src/reporter.py`)**: Produces `output/run-report.json` with duration, cache hits, failure counts, and summary statistics.
-7. **Observability (`src/dashboard.py`, `src/exporters.py`)**: Exports `output/books.csv` and an interactive local HTML dashboard `output/dashboard.html`.
+4. **Validation & Normalization (`src/normalizer.py`, `src/schemas.py`)**: Converts currency strings (`£51.77` → `51.77`), availability (`In stock (22 available)` → `22`), and star words (`Three` → `3`). Enforces Pydantic schema validation.
+5. **Relational Storage (`src/sqlite_storage.py`)**: Idempotent upserts into indexed SQLite database (`output/books.db`) with full-text search and query helpers.
+6. **Multi-Format Exporters (`src/exporters.py`)**: Automatically produces CSV (`output/books.csv`), Markdown table (`output/books.md`), NDJSON (`output/books.ndjson`), and XML (`output/books.xml`).
+7. **Analytics & Governance (`src/analytics.py`, `src/audit.py`)**: Computes mean, median, standard deviation, IQR price outliers, and generates cryptographic SHA-256 audit manifest (`output/audit-manifest.json`).
+8. **Observability & REST API (`src/dashboard.py`, `src/server.py`)**: Interactive glassmorphic dashboard with Chart.js analytics, instant search, star-rating chips, book detail modal, and RESTful API endpoints.
 
 ---
 
@@ -81,84 +90,21 @@ graph TD
 | `product_url` | `HttpUrl` | **Yes** | Canonical absolute URL | `"https://books.toscrape.com/catalogue/..."` |
 | `price_text` | `string` | **Yes** | Raw price string with currency | `"£51.77"` |
 | `price_gbp` | `float` | **Yes** | Clean numeric price in GBP (`gt=0`) | `51.77` |
+| `currency` | `string` | **Yes** | Standard currency code | `"GBP"` |
 | `availability_text` | `string` | **Yes** | Raw stock status string | `"In stock (22 available)"` |
 | `stock_count` | `integer` | **Yes** | Parsed available stock units (`ge=0`) | `22` |
+| `is_in_stock` | `boolean` | **Yes** | Flag indicating stock availability | `true` |
+| `total_inventory_value_gbp` | `float` | **Yes** | Computed inventory valuation (`price * stock`) | `1138.94` |
 | `rating_text` | `string` | **Yes** | Raw star rating text | `"Three"` |
 | `rating` | `integer` | **Yes** | Numeric star rating (1 to 5) | `3` |
 | `description` | `string` / `null` | *Optional* | Product description or `null` | `"Shel Silverstein's poem..."` |
+| `category` | `string` / `null` | *Optional* | Inferred taxonomy category | `"Poetry"` |
 | `source_page` | `HttpUrl` | **Yes** | Catalogue URL where link was found | `"https://books.toscrape.com/catalogue/page-1.html"` |
-| `fetched_at` | `datetime` | **Yes** | ISO 8601 UTC timestamp of fetch | `"2026-08-16T20:37:28Z"` |
+| `fetched_at` | `datetime` | **Yes** | ISO 8601 UTC timestamp of fetch | `"2026-11-21T18:00:00Z"` |
 
 ---
 
-## 5. Politeness Rules & Respectful Guest Protocol
-
-- **Honest User-Agent**: Every request introduces itself clearly:
-  `User-Agent: PoliteWebScraper/1.0 (+https://github.com/AliWahid1310/polite-web-scraper)`
-- **Request Delay**: Enforces at least a **500 ms pause** between outbound network requests.
-- **Request Timeout**: Strict **10-second timeout** so requests never hang indefinitely.
-- **Development Cache**: All fetched HTML is stored locally in `cache/`. Re-running the pipeline 50 times during development hits the network **zero times**.
-- **No Aggressive Retries**: Never retries client errors (`404 Not Found` or `403 Forbidden`). Only transient server errors (`5xx`) or connection timeouts are retried with exponential backoff.
-
----
-
-## 6. Actual Run Report (`output/run-report.json`)
-
-```json
-{
-  "start_time": "2026-08-16T20:37:28.917835+00:00",
-  "end_time": "2026-08-16T20:37:31.007491+00:00",
-  "duration_seconds": 2.09,
-  "catalogue_pages_discovered": 3,
-  "catalogue_pages_fetched": 3,
-  "detail_pages_discovered": 60,
-  "detail_pages_fetched": 60,
-  "cache_hits": 63,
-  "network_requests": 1,
-  "valid_records": 60,
-  "invalid_records": 0,
-  "failed_pages": 1,
-  "failed_urls": [
-    {
-      "url": "https://books.toscrape.com/catalogue/deliberately-broken-page-404_99999/index.html",
-      "reason": "HTTP 404",
-      "status_code": 404,
-      "timestamp": "2026-08-16T20:37:30.920847+00:00"
-    }
-  ],
-  "average_price_gbp": 35.0,
-  "stock_total_units": 1078
-}
-```
-
----
-
-## 7. Why No Browser Was Needed (Cost & Performance Analysis)
-
-1. **Server-Side Rendered (SSR) HTML**: Books to Scrape delivers all product information directly inside the initial server HTML payload.
-2. **Resource Efficiency**:
-   - **Plain HTTP (Requests + BeautifulSoup)**: ~12 MB memory, 150 ms per request, zero browser overhead.
-   - **Headless Chromium (Playwright/Puppeteer)**: ~250–400 MB memory per instance, 2,000+ ms per page (15x slower, 30x heavier).
-3. **Conclusion**: Using a browser when data is already in the server HTML adds unnecessary compute, latency, and cost without any extraction benefit.
-
----
-
-## 8. Web Scraping Ethics & Best Practices
-
-1. **Official APIs First**: Always check for an official API or data export before writing a custom scraper.
-2. **Never Bypass Authentication or Paywalls**: Do not scrape content behind logins or paywalls unless explicitly authorized.
-3. **Collect Only What You Need**: Avoid scraping entire domains when a targeted subset solves the problem.
-4. **Respect Rate Limits**: Honor `Retry-After` headers and maintain respectful crawling speeds.
-
----
-
-## 9. Honest Limitation
-
-This scraper is purpose-built for **static server-rendered HTML** with standard pagination. It does not execute client-side JavaScript or simulate complex Single Page Application (SPA) browser interactions like infinite scrolling or WebGL canvas rendering. For JavaScript-dependent sites (such as `quotes.toscrape.com/js`), a browser automation tool like Playwright or reverse-engineering the underlying REST/GraphQL JSON API is required.
-
----
-
-## 10. Built-in Web Server & REST API
+## 5. Built-in Web Server & REST API
 
 The Polite Web Scraper includes a zero-dependency local web server built directly on Python's standard library (`http.server`).
 
@@ -172,23 +118,115 @@ python src/cli.py --serve --port 9000
 ```
 Open **`http://127.0.0.1:8080/`** in your browser to view the interactive glassmorphic dashboard with Chart.js analytics!
 
-### Available REST API Endpoints
+### REST API Endpoints
 
-| Endpoint | Method | Description | Parameters |
+| Endpoint | Method | Description | Query Parameters |
 |---|---|---|---|
 | `/` or `/dashboard` | `GET` | Interactive Observability Web UI | N/A |
 | `/api/health` | `GET` | Service health and records count | N/A |
 | `/api/stats` | `GET` | Detailed pricing analytics, rating breakdown & inventory values | N/A |
 | `/api/books` | `GET` | Paginated books search & faceted filtering | `?q=`, `?rating=`, `?in_stock=`, `?min_price=`, `?max_price=`, `?sort=`, `?page=`, `?limit=` |
-| `/api/export` | `GET` | Stream download of datasets in selected format | `?format=csv`, `?format=json`, `?format=markdown`, `?format=ndjson`, `?format=xml` |
+| `/api/export` | `GET` | Direct browser download of datasets in selected format | `?format=csv`, `?format=json`, `?format=markdown`, `?format=ndjson`, `?format=xml` |
+
+#### Example REST API Query:
+```bash
+# Query books with price under £30 and 5-star rating
+curl "http://127.0.0.1:8080/api/books?max_price=30&rating=5"
+
+# Download filtered dataset directly as CSV
+curl -O "http://127.0.0.1:8080/api/export?format=csv"
+```
 
 ---
 
-## 11. Extras & Bonus Features Included
+## 6. Interactive Visual Observability Dashboard
 
-- **CSV Export**: `output/books.csv` with cleaned multiline descriptions and flattened fields.
+Generated automatically at `output/dashboard.html` and served live via `python src/cli.py --serve`:
+
+- **Glassmorphic Cyberpunk Theme**: Polished typography (`Plus Jakarta Sans`, `JetBrains Mono`), responsive flexbox layout, and glow cards.
+- **Interactive Visual Charts (Chart.js)**:
+  - **Price Distribution Histogram**: 4-bin dynamic price distribution bar chart.
+  - **Rating Breakdown Donut Chart**: Proportional star-rating breakdown (1★ through 5★).
+- **Faceted Real-Time Filtering**:
+  - Live debounce search by title or description keywords.
+  - Interactive Star-Rating chips (All, 5★, 4★, 3★, 2★, 1★).
+  - Stock availability toggle (All, In Stock Only, Out of Stock).
+  - Sorting by Price (Asc/Desc), Rating (Desc), Stock Units (Desc), or Title (A–Z).
+- **Interactive Book Detail Modal**: Click any book to view full description, pricing, inventory units, source page, fetch timestamp, and quick-copy JSON button.
+- **Client-Side One-Click Exports**: Download filtered data directly as CSV or formatted JSON from the browser.
+
+---
+
+## 7. CLI Command-Line Interface
+
+The modular CLI in `src/cli.py` supports stage-by-stage execution, database search, export formatting, and web serving:
+
+```bash
+# Display help and options
+python src/cli.py --help
+
+# Crawl 5 catalogue pages
+python src/cli.py --max-pages 5
+
+# Search local SQLite database directly from terminal
+python src/cli.py --query "poetry"
+
+# Export catalogue to Markdown table
+python src/cli.py --export-format markdown
+
+# Launch web server and API
+python src/cli.py --serve --port 8080
+```
+
+---
+
+## 8. Politeness & Guest Protocol
+
+- **Honest User-Agent**: Every request introduces itself clearly:
+  `User-Agent: PoliteWebScraper/2.0 (+https://github.com/AliWahid1310/polite-web-scraper)`
+- **Token-Bucket Rate Limiter**: Enforces strict inter-request pacing (default: 2 requests/sec).
+- **Circuit Breaker**: Trips to `OPEN` state upon consecutive 5xx errors to prevent hammering.
+- **Development Cache**: All fetched HTML is stored locally in `cache/`. Re-running the pipeline 50 times during development hits the network **zero times**.
+- **No Aggressive Retries**: Never retries client errors (`404 Not Found` or `403 Forbidden`). Only transient server errors (`5xx`) or connection timeouts are retried once.
+
+---
+
+## 9. Actual Run Report (`output/run-report.json`)
+
+```json
+{
+  "start_time": "2026-11-21T18:00:00.000000+00:00",
+  "end_time": "2026-11-21T18:00:02.500000+00:00",
+  "duration_seconds": 2.5,
+  "catalogue_pages_discovered": 3,
+  "catalogue_pages_fetched": 3,
+  "detail_pages_discovered": 60,
+  "detail_pages_fetched": 60,
+  "cache_hits": 63,
+  "network_requests": 1,
+  "valid_records": 60,
+  "invalid_records": 0,
+  "failed_pages": 1,
+  "failed_urls": [
+    {
+      "url": "https://books.toscrape.com/catalogue/deliberately-broken-page-404_99999/index.html",
+      "reason": "HTTP 404",
+      "status_code": 404
+    }
+  ],
+  "average_price_gbp": 35.0,
+  "stock_total_units": 1078
+}
+```
+
+---
+
+## 10. Extras & Advanced Engineering Features
+
+- **Multi-Format Exporters**: Outputs `output/books.csv`, `output/books.json`, `output/books.md`, `output/books.ndjson`, and `output/books.xml`.
+- **Relational SQLite Database**: `output/books.db` with indexes on price, rating, stock, and title.
+- **Cryptographic Audit Manifest**: `output/audit-manifest.json` with dataset SHA-256 root digests and anomaly checks.
 - **Change Detection**: `src/diff.py` computes deterministic SHA-256 digests to track record mutations across consecutive crawls.
-- **Local Dashboard**: `output/dashboard.html` provides an interactive real-time visual UI with search, statistics, and rating breakdowns.
-- **Production Backoff**: `src/backoff.py` implements full jitter and `Retry-After` header parsing.
-- **AI Rematch**: Quarantined AI-generated scraper in `ai-version/` with complete engineering analysis in `AI_REMATCH_DIFF.md`.
-- **19 Unit Tests**: Full pytest suite covering edge cases, malformed fixtures, and validation rules.
+- **Local AI Enrichment**: Optional Ollama integration with deterministic semantic heuristic fallback (`src/enrichment.py`).
+- **Concurrent Worker Pool**: Bounded thread pool (`src/queue_worker.py`) with thread-safe rate limiting and progress callbacks.
+- **69 Comprehensive Unit Tests**: Complete pytest suite covering edge cases, network retries, schemas, SQLite, API routes, and UI generators.
