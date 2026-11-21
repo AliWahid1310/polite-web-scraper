@@ -1,7 +1,7 @@
 {
-  "start_time": "2026-08-18T12:05:49.708369+00:00",
-  "end_time": "2026-08-18T12:05:57.497500+00:00",
-  "duration_seconds": 7.79,
+  "start_time": "2026-11-22T18:11:14.725665+00:00",
+  "end_time": "2026-11-22T18:11:20.585528+00:00",
+  "duration_seconds": 5.86,
   "catalogue_pages_discovered": 3,
   "catalogue_pages_fetched": 3,
   "detail_pages_discovered": 60,
@@ -14,11 +14,56 @@
   "failed_urls": [
     {
       "url": "https://books.toscrape.com/catalogue/deliberately-broken-page-404_99999/index.html",
-      "reason": "HTTP 404",
-      "status_code": 404,
-      "timestamp": "2026-08-18T12:05:57.450079+00:00"
+      "reason": "Network exception: HTTPSConnectionPool(host='books.toscrape.com', port=443): Max retries exceeded with url: /catalogue/deliberately-broken-page-404_99999/index.html (Caused by NameResolutionError(\"<urllib3.connection.HTTPSConnection object at 0x0000015D12795810>: Failed to resolve 'books.toscrape.com' ([Errno 11001] getaddrinfo failed)\"))",
+      "status_code": null,
+      "timestamp": "2026-11-22T18:11:19.925840+00:00"
     }
   ],
   "average_price_gbp": 35.0,
-  "stock_total_units": 1078
+  "stock_total_units": 1078,
+  "analytics_summary": {
+    "pricing": {
+      "count": 60,
+      "min_gbp": 12.84,
+      "max_gbp": 57.31,
+      "mean_gbp": 35.0,
+      "median_gbp": 33.48,
+      "std_dev_gbp": 14.55,
+      "q1_gbp": 21.58,
+      "q3_gbp": 50.19,
+      "iqr_gbp": 28.61,
+      "outliers": [],
+      "price_histogram": {
+        "0-20": 14,
+        "20-40": 22,
+        "40-60": 24,
+        "60+": 0
+      }
+    },
+    "ratings": {
+      "breakdown": {
+        "1": 15,
+        "2": 8,
+        "3": 13,
+        "4": 10,
+        "5": 14
+      },
+      "percentages": {
+        "1": 25.0,
+        "2": 13.3,
+        "3": 21.7,
+        "4": 16.7,
+        "5": 23.3
+      },
+      "average_rating": 3.0,
+      "total_rated": 60
+    },
+    "inventory": {
+      "total_units": 1078,
+      "total_inventory_valuation_gbp": 37912.99,
+      "in_stock_titles": 60,
+      "out_of_stock_titles": 0,
+      "average_stock_per_title": 18.0
+    }
+  }
 }

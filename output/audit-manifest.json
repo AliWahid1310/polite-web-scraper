@@ -1,0 +1,13 @@
+{
+  "manifest_version": "2.0.0",
+  "generated_at": "2026-11-22T18:11:20.594202+00:00",
+  "target_dataset": "Books to Scrape (https://books.toscrape.com)",
+  "record_count": 60,
+  "dataset_root_hash": "7143b7efd2ca0d84dea6a27230b4aaca06e2c4641bba29e0990a3175e465e02c",
+  "verification_status": "PASSED",
+  "integrity_summary": {
+    "unique_urls": 60,
+    "duplicates_detected": 0,
+    "anomalies_detected": 0
+  }
+}
