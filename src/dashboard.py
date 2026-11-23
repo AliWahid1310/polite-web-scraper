@@ -62,7 +62,6 @@ def generate_dashboard_html(
             price_bins["Over £60"] += 1
 
     books_json_embedded = json.dumps(books, ensure_ascii=False)
-    report_json_embedded = json.dumps(report, ensure_ascii=False)
     price_bins_embedded = json.dumps(price_bins)
     ratings_dist_embedded = json.dumps(ratings_dist)
 

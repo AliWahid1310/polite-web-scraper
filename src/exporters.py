@@ -12,8 +12,6 @@ import json
 import os
 from typing import Any
 
-from src.schemas import BookRecord
-
 
 def _to_dict(rec: Any) -> dict[str, Any]:
     """Helper to convert BookRecord or dict to plain dict."""

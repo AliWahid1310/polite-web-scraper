@@ -4,6 +4,7 @@ Tests price normalization, stock extraction, rating conversions, and URL joining
 """
 
 from urllib.parse import urljoin
+
 from src.normalizer import (
     normalize_book_record,
     normalize_price,

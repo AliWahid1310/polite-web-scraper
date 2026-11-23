@@ -5,6 +5,7 @@ Tests strict type constraints, edge cases, and rejection of invalid records.
 
 import pytest
 from pydantic import ValidationError
+
 from src.schemas import BookRecord
 
 

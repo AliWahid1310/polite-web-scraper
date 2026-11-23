@@ -8,11 +8,9 @@ Requires zero external web framework dependencies (built on Python stdlib http.s
 from __future__ import annotations
 
 import json
-import mimetypes
 import os
 import sys
 import urllib.parse
-from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any
 
@@ -217,7 +215,9 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
 
 def create_server(host: str = "127.0.0.1", port: int = 8080, output_dir: str = "output") -> HTTPServer:
     """Instantiate and configure the HTTP server."""
-    handler = lambda *args, **kwargs: DashboardRequestHandler(*args, output_dir=output_dir, **kwargs)
+    def handler(*args: Any, **kwargs: Any) -> DashboardRequestHandler:
+        return DashboardRequestHandler(*args, output_dir=output_dir, **kwargs)
+
     return HTTPServer((host, port), handler)
 
 
@@ -227,7 +227,7 @@ def run_server(host: str = "127.0.0.1", port: int = 8080, output_dir: str = "out
     print(f"\n[SERVER] Polite Web Scraper Dashboard running at: http://{host}:{port}/")
     print(f"[SERVER] REST API Books endpoint: http://{host}:{port}/api/books")
     print(f"[SERVER] REST API Stats endpoint: http://{host}:{port}/api/stats")
-    print(f"[SERVER] Press Ctrl+C to terminate.")
+    print("[SERVER] Press Ctrl+C to terminate.")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

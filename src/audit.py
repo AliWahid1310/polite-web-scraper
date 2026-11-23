@@ -45,7 +45,6 @@ class DatasetAuditor:
             title = str(rec.get("title", "")).strip()
             price = float(rec.get("price_gbp", 0.0))
             rating = int(rec.get("rating", 0))
-            stock = int(rec.get("stock_count", 0))
 
             if url in seen_urls:
                 duplicate_urls.append(url)

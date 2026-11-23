@@ -14,7 +14,6 @@ Stages:
 """
 
 import hashlib
-import json
 import os
 import re
 import sys
@@ -28,7 +27,7 @@ from bs4 import BeautifulSoup
 
 from src.audit import DatasetAuditor
 from src.dashboard import generate_dashboard_html
-from src.exporters import export_all_formats, export_to_csv
+from src.exporters import export_all_formats
 from src.extract import extract_book_detail
 from src.headers import RespectfulHeaderManager
 from src.logger import StructuredLogger

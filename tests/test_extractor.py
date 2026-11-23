@@ -4,6 +4,7 @@ Tests valid HTML extraction, missing description handling, and malformed HTML re
 """
 
 import os
+
 from src.extract import extract_book_detail
 from src.storage import process_and_validate_records
 

@@ -4,7 +4,9 @@ Unit tests for retry policies and ScraperReporter metrics aggregation.
 
 import os
 import tempfile
+
 import requests
+
 from src.reporter import ScraperReporter
 from src.retry import should_retry
 from src.schemas import BookRecord

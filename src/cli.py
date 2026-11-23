@@ -21,7 +21,7 @@ import sys
 # Ensure project root in sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.exporters import export_all_formats, export_to_csv, export_to_markdown_table, export_to_ndjson, export_to_xml
+from src.exporters import export_to_csv, export_to_markdown_table, export_to_ndjson, export_to_xml
 from src.main import (
     BASE_URL,
     OUTPUT_DIR,

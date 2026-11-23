@@ -5,6 +5,7 @@ Unit tests for structured JSON-Lines logger module (src/logger.py).
 import json
 import os
 import tempfile
+
 from src.logger import StructuredLogger
 
 

@@ -3,10 +3,12 @@ Unit tests for AI enrichment module (Stretch Goal).
 Tests schema isolation, fallback classifier, and mock network response handling.
 """
 
-from unittest.mock import MagicMock, patch
-from pydantic import HttpUrl
 from datetime import datetime, timezone
-from src.enrichment import enrich_book_record, EnrichedBookRecord, _heuristic_semantic_classifier
+from unittest.mock import MagicMock, patch
+
+from pydantic import HttpUrl
+
+from src.enrichment import EnrichedBookRecord, _heuristic_semantic_classifier, enrich_book_record
 from src.schemas import BookRecord
 
 

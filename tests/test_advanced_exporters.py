@@ -6,7 +6,6 @@ import json
 
 from src.exporters import (
     export_all_formats,
-    export_to_csv,
     export_to_markdown_table,
     export_to_ndjson,
     export_to_xml,

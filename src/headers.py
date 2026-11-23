@@ -7,7 +7,6 @@ provide an honest contact URL, and adhere to web scraping ethics.
 from __future__ import annotations
 
 import random
-from typing import Any
 
 DEFAULT_REPO_URL = "https://github.com/AliWahid1310/polite-web-scraper"
 DEFAULT_BOT_NAME = "PoliteWebScraper"

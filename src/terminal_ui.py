@@ -45,7 +45,6 @@ class TerminalUI:
         """Print stylized application banner."""
         cyan = TerminalColors.CYAN
         bold = TerminalColors.BOLD
-        reset = TerminalColors.RESET
         border = "=" * 64
 
         print(cls.colorize(border, cyan))
