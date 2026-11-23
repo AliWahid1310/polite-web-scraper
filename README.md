@@ -1,9 +1,9 @@
 # The Polite Web Scraper
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-69%20passed-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-165%20passed-brightgreen.svg)]()
 [![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
-[![Architecture: v2.0 Enterprise](https://img.shields.io/badge/architecture-v2.0%20enterprise-blueviolet.svg)]()
+[![Architecture: v2.1 Enterprise](https://img.shields.io/badge/architecture-v2.1%20enterprise-blueviolet.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A polite, resilient, enterprise-grade web scraping platform that extracts 3 catalogue pages and 60 book detail pages from [Books to Scrape](https://books.toscrape.com), transforms messy HTML into strict schema-validated JSON, relational SQLite, CSV, Markdown, NDJSON, and XML, survives unexpected page failures with token-bucket rate limiting and circuit breakers, and serves an interactive glassmorphic visual observability dashboard with Chart.js analytics and REST API endpoints.

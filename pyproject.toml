@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "polite-web-scraper"
-version = "1.0.0"
+version = "2.1.0"
 description = "A polite, robust web scraping pipeline for Books to Scrape."
 readme = "README.md"
 requires-python = ">=3.10"
